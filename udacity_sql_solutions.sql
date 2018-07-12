@@ -80,3 +80,104 @@ JOIN sales_reps s
 ON a.sales_rep_id = s.id
 GROUP BY s.id
 ORDER BY num_accounts;
+
+'''
+How many of the sales reps have more than 5 accounts that they manage?
+'''
+SELECT s.id, COUNT(*) AS num_accounts
+FROM accounts a
+JOIN sales_reps s
+ON a.sales_rep_id = s.id
+GROUP BY s.id
+HAVING COUNT(*) > 5;
+
+'''
+How many accounts have more than 20 orders?
+'''
+SELECT a.id, COUNT(*)
+FROM orders o
+JOIN accounts a
+ON a.id = o.account_id
+GROUP BY a.id
+HAVING COUNT(*) > 20;
+
+'''
+Which account has the most orders?
+'''
+SELECT a.id, a.name, COUNT(*)
+FROM orders o
+JOIN accounts a
+ON a.id = o.account_id
+GROUP BY a.id, a.name
+ORDER BY COUNT(*) DESC;
+
+'''
+How many accounts spent more than 30,000 usd total across all orders?
+'''
+SELECT a.id, a.name, SUM(o.total_amt_usd)
+FROM orders o
+JOIN accounts a
+ON a.id = o.account_id
+GROUP BY a.id, a.name
+HAVING SUM(o.total_amt_usd) > 30000;
+
+'''
+How many accounts spent less than 1,000 usd total across all orders?
+'''
+SELECT a.id, a.name, SUM(o.total_amt_usd)
+FROM orders o
+JOIN accounts a
+ON a.id = o.account_id
+GROUP BY a.id, a.name
+HAVING SUM(o.total_amt_usd) < 1000;
+
+'''
+Which account has spent the most with us?
+'''
+SELECT a.id, a.name, SUM(o.total_amt_usd)
+FROM orders o
+JOIN accounts a
+ON a.id = o.account_id
+GROUP BY a.id, a.name
+ORDER BY SUM(o.total_amt_usd) DESC;
+
+'''
+Which account has spent the least with us?
+'''
+SELECT a.id, a.name, SUM(o.total_amt_usd)
+FROM orders o
+JOIN accounts a
+ON a.id = o.account_id
+GROUP BY a.id, a.name
+ORDER BY SUM(o.total_amt_usd);
+
+'''
+Which accounts used facebook as a channel to contact customers more
+than 6 times?
+'''
+SELECT a.id, a.name, w.channel, COUNT(w.channel)
+FROM web_events w
+JOIN accounts a
+ON a.id = w.account_id
+WHERE w.channel = 'facebook'
+GROUP BY a.id, a.name, w.channel
+HAVING COUNT(w.channel) > 6;
+
+'''
+Which account used facebook most as a channel?
+'''
+SELECT a.id, a.name, w.channel, COUNT(w.channel)
+FROM web_events w
+JOIN accounts a
+ON a.id = w.account_id
+WHERE w.channel = 'facebook'
+GROUP BY a.id, a.name, w.channel
+ORDER BY COUNT(w.channel) DESC;
+
+'''
+Which channel was most frequently used by most accounts?
+'''
+SELECT channel, COUNT(channel)
+FROM web_events
+GROUP BY channel
+ORDER BY COUNT(channel) DESC;
