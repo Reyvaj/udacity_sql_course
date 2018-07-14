@@ -311,3 +311,42 @@ JOIN sales_reps s
 ON a.sales_rep_id = s.id
 GROUP BY 1
 ORDER BY 3 DESC;
+
+'''
+On which day-channel pair did the most events occur.
+'''
+SELECT DATE_TRUNC('day', occurred_at) AS day, channel, COUNT(*)
+FROM web_events
+GROUP BY DATE_TRUNC('day', occurred_at), channel
+ORDER BY COUNT(*) DESC;
+
+'''
+Now create a subquery that simply provides all of the data from your
+first query.
+'''
+SELECT channel, AVG(count)
+FROM
+ (SELECT DATE_TRUNC('day', occurred_at) AS day, channel, COUNT(*)
+ FROM web_events
+ GROUP BY DATE_TRUNC('day', occurred_at), channel
+ ORDER BY COUNT(*) DESC) AS sub
+ GROUP BY 1
+ ORDER BY 2 DESC;
+
+'''
+Use DATE_TRUNC to pull month level information about the first order ever
+placed in the orders table.
+'''
+SELECT DATE_TRUNC('month', MIN(occurred_at))
+FROM orders
+
+'''
+Use the result of the previous query to find only the orders that took place
+in the same month and year as the first order, and then pull the average
+for each type of paper qty in this month.
+'''
+SELECT AVG(standard_qty) avg_std,
+       AVG(gloss_qty) avg_gloss, AVG(poster_qty) avg_poster
+FROM orders
+WHERE DATE_TRUNC('month', occurred_at) = (SELECT DATE_TRUNC('month', MIN(occurred_at))
+FROM orders)
