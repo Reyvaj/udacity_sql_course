@@ -349,4 +349,82 @@ SELECT AVG(standard_qty) avg_std,
        AVG(gloss_qty) avg_gloss, AVG(poster_qty) avg_poster
 FROM orders
 WHERE DATE_TRUNC('month', occurred_at) = (SELECT DATE_TRUNC('month', MIN(occurred_at))
-FROM orders)
+FROM orders);
+
+'''
+Provide the name of the sales_rep in each region with the largest
+amount of total_amt_usd sales.
+'''
+SELECT t3.rep, t3.region, t3.total_sales
+FROM (SELECT region, MAX(total_sales) total_sales
+      FROM (SELECT s.name rep, r.name region, SUM(o.total_amt_usd) total_sales
+            FROM sales_reps s
+            JOIN accounts a
+            ON a.sales_rep_id = s.id
+            JOIN orders o
+            ON o.account_id = a.id
+            JOIN region r
+            ON s.region_id = r.id
+            GROUP BY 1, 2) t1
+      GROUP BY 1) t2
+JOIN (SELECT s.name rep, r.name region, SUM(o.total_amt_usd) total_sales
+      FROM sales_reps s
+      JOIN accounts a
+      ON a.sales_rep_id = s.id
+      JOIN orders o
+      ON o.account_id = a.id
+      JOIN region r
+      ON s.region_id = r.id
+      GROUP BY 1, 2
+      ORDER BY 3) t3
+ON t3.region = t2.region AND t3.total_sales = t2.total_sales;
+
+'''
+For the region with the largest sales total_amt_usd,
+how many total orders were placed?
+'''
+SELECT t2.region, t2.total_orders
+FROM (SELECT r.name region, SUM(o.total_amt_usd) total_amt_usd
+FROM orders o
+JOIN accounts a
+ON o.account_id = a.id
+JOIN sales_reps sr
+ON a.sales_rep_id = sr.id
+JOIN region r
+ON sr.region_id = r.id
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 1) t1
+JOIN (SELECT r.name region, COUNT(*) total_orders
+      FROM orders o
+      JOIN accounts a
+      ON o.account_id = a.id
+      JOIN sales_reps sr
+      ON a.sales_rep_id = sr.id
+      JOIN region r
+      ON sr.region_id = r.id
+      GROUP BY 1) t2
+ON t1.region = t2.region;
+
+'''
+For the name of the account that purchased the most (in total over
+their lifetime as a customer) standard_qty paper, how many accounts
+still had more in total purchases?
+'''
+SELECT COUNT(*)
+FROM (
+SELECT a.name AS name, SUM(o.total) total_purchases
+FROM accounts a
+JOIN orders o
+ON o.account_id = a.id
+GROUP BY 1
+HAVING SUM(o.total) > (SELECT t1.total_purchases
+                       FROM (SELECT a.name AS name,
+                                    SUM(o.standard_qty) total_std_qty,
+                                    SUM(o.total) total_purchases
+                             FROM accounts a
+                             JOIN orders o
+                             ON o.account_id = a.id
+                             GROUP BY 1
+                             ORDER BY 2 DESC
+                             LIMIT 1) t1)) sub;
