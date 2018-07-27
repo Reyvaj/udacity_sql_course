@@ -766,5 +766,33 @@ account using a partition. Your final table should have these
 four columns.
 '''
 SELECT id, account_id, total,
-		RANK() OVER(PARTITION BY account_id ORDER BY total DESC) AS rank
+       RANK() OVER(PARTITION BY account_id ORDER BY total DESC) AS rank
 FROM orders
+
+/* FULL OUTER JOIN AND COMPARISON OPERATORS*/
+'''
+Each account who has a sales rep and each sales rep that has an 
+account (all of the columns in these returned rows will be full),
+but also each account that does not have a sales rep and each 
+sales rep that does not have an account (some of the columns 
+in these returned rows will be empty)
+'''
+SELECT a.id AS account, sr.id AS sales_rep
+FROM accounts a
+FULL OUTER JOIN sales_reps sr
+ON a.sales_rep_id = sr.id
+
+"""
+In the following SQL Explorer, write a query that left joins 
+the accounts table and the sales_reps tables on each sale 
+rep's ID number and joins it using the < comparison operator 
+on accounts.primary_poc and sales_reps.name
+"""
+SELECT a.name AS account, 
+	   a.primary_poc AS poc, 
+       sr.name AS sales_rep
+FROM accounts a
+LEFT JOIN sales_reps sr
+ON a.sales_rep_id = sr.id
+AND a.primary_poc < sr.name
+
